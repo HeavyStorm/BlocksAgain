@@ -8,16 +8,18 @@ namespace Assets.MainScene.Scripts.ObjectBehaviors
     {
         public GameObject Board;
 
-        public GameObject[] BlockTemplates;
+        public GameObject BlockPrefab;
+
+        public float Margin;
 
         public float PercentageOfBoardFromTop = 0.50f;
 
         public IEnumerable<GameObject> CreateBlocks()
         {
-            var blockSize = BlockTemplates[0].GetComponent<Renderer>().bounds.size;
+            var blockSize = BlockPrefab.GetComponent<Renderer>().bounds.size;
             var boardSize = Board.GetComponent<Renderer>().bounds.size;
 
-            return CreateBlocksImpl(blockSize, boardSize, 1f);
+            return CreateBlocksImpl(blockSize, boardSize, Margin);
         }
 
         /// <summary>
@@ -49,7 +51,7 @@ namespace Assets.MainScene.Scripts.ObjectBehaviors
 
                     var position = boardCenter + origin + shiftFromOrigin + shiftToBoxCenter;
 
-                    var gameobject = (GameObject)Instantiate(BlockTemplates[0], position, Quaternion.identity);
+                    var gameobject = (GameObject)Instantiate(BlockPrefab, position, Quaternion.identity);
 
                     yield return gameobject;
                 }
