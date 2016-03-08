@@ -1,7 +1,7 @@
 ﻿using Assets.Other_Assets.Scripts;
 using UnityEngine;
 
-namespace Assets.Main_Scene.Scripts
+namespace Assets.MainScene.Scripts.ObjectBehaviors
 {
     /// <summary>
     /// Class responsible for obtaining user input and transmitting it to objects

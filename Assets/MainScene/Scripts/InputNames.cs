@@ -1,4 +1,4 @@
-﻿namespace Assets.Main_Scene.Scripts
+﻿namespace Assets.MainScene.Scripts
 {
     public static class InputNames
     {

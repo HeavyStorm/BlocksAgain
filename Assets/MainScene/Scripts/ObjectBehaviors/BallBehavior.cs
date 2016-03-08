@@ -1,13 +1,15 @@
-﻿using Assets.Other_Assets.Scripts;
+﻿using System;
+using Assets.ScriptMagic;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
-namespace Assets.Main_Scene.Scripts
+namespace Assets.MainScene.Scripts.ObjectBehaviors
 {
     /// <summary>
     /// Main behavior that controls a ball in game
     /// </summary>
     [RequireComponent(typeof(Rigidbody))]
-    public class BallBehavior : MonoBehaviour, IUpdatable
+    public class BallBehavior : MonoBehaviour
     {
         /// <summary>
         /// The flipper related to the ball
@@ -45,6 +47,11 @@ namespace Assets.Main_Scene.Scripts
         public float LaunchAngleAmplitude = 60.0f;
 
         /// <summary>
+        /// Raised when the ball is destroyed (death).
+        /// </summary>
+        public event EventHandler BallDestroyed;
+
+        /// <summary>
         /// The rigidbody component of this object.
         /// </summary>
         private Rigidbody _rigidbody;
@@ -69,25 +76,24 @@ namespace Assets.Main_Scene.Scripts
         /// </summary>
         private AudioSource _launchSoundAudioSource;
 
+        private Vector3 _initialPosition;
+
         // Use this for initialization
-        public void Start()
+        private void Start()
         {
             _rigidbody = GetComponent<Rigidbody>();
 
             if (Flipper == null) throw new UnityException("Flipper must be set.");
 
-            _deathSoundAudioSource = AddAudioSource(DeathSound);
-            _launchSoundAudioSource = AddAudioSource(LaunchSound);
-            _crashSoundAudioSource = AddAudioSource(CrashSound);
+            _deathSoundAudioSource = this.AddAudioSource(DeathSound);
+            _launchSoundAudioSource = this.AddAudioSource(LaunchSound);
+            _crashSoundAudioSource = this.AddAudioSource(CrashSound);
+
+            _initialPosition = transform.position;
 
         }
 
-        // Update is called once per frame
-        public void Update()
-        {
-        }
-
-        public void FixedUpdate()
+        private void FixedUpdate()
         {
             if (_currentState != State.WaitingToMove) return;
 
@@ -116,7 +122,9 @@ namespace Assets.Main_Scene.Scripts
                 _deathSoundAudioSource.Play();
                 _currentState = State.Dying;
                 _rigidbody.velocity = Vector3.zero;
-
+                
+                // TODO: Add delay
+                OnBallDestroyed();
             }
             else
             {
@@ -135,12 +143,7 @@ namespace Assets.Main_Scene.Scripts
             _launchSoundAudioSource.Play();
         }
 
-        private AudioSource AddAudioSource(AudioClip clip)
-        {
-            var source = gameObject.AddComponent<AudioSource>();
-            source.clip = clip;
-            return source;
-        }
+        
 
         /// <summary>
         /// All possible states of this object.
@@ -152,6 +155,20 @@ namespace Assets.Main_Scene.Scripts
             Moving,
             Dying,
             Dead
+        }
+
+        private  void OnBallDestroyed()
+        {
+            var handler = BallDestroyed;
+            if (handler != null) handler(this, EventArgs.Empty);
+        }
+
+        public void Reset()
+        {
+            transform.position = _initialPosition;
+            transform.parent = Flipper.transform;
+            _currentState = State.Still;
+            _rigidbody.isKinematic = true;
         }
     }
 }

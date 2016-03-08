@@ -2,44 +2,23 @@
 using Assets.Other_Assets.Scripts;
 using UnityEngine;
 
-namespace Assets.Main_Scene.Scripts
+namespace Assets.MainScene.Scripts.ObjectBehaviors
 {
     /// <summary>
     /// Defines the default behavior for a flipper GameObject.
     /// </summary>
+    [RequireComponent(typeof(Rigidbody))]
     public class FlipperBehavior : MonoBehaviour, IUpdatable, IFixedUpdatable
     {
-        ///// <summary>
-        ///// The "attrition" between the flipper and the ground
-        ///// </summary>
-        //public Vector3 DecreaseAccelaration = new Vector3(-10, 0);
-
-        ///// <summary>
-        ///// The acceleration that the player inputs to the flipper every frame.
-        ///// </summary>
-        //public Vector3 IncreaseAccelaration = new Vector3(10, 0);
-
-
+        /// <summary>
+        /// BaseForce applied on move
+        /// </summary>
         public float BaseForce = 50.0f;
 
-        ///// <summary>
-        ///// Maximum speed that can be attained by this object.
-        ///// </summary>
-        //public Vector3 MaxSpeed = new Vector3(50, 0);
-
-        ///// <summary>
-        ///// Speeds less than this are considered zero
-        ///// </summary>
-        //public Vector3 DeadZone = new Vector3(1, 0);
         /// <summary>
         /// Movement amount must be higher than this.
         /// </summary>
         public float MovementThreshold = 0.1f;
-
-        ///// <summary>
-        ///// The current speed of the flipper.
-        ///// </summary>
-        //private Vector3 _currentSpeed = Vector3.zero;
 
         /// <summary>
         /// The <see cref="Rigidbody"/> component of this <see cref="GameObject"/>.
@@ -52,12 +31,17 @@ namespace Assets.Main_Scene.Scripts
         private float _movementAmount;
 
         /// <summary>
+        /// The initial position of the flipper
+        /// </summary>
+        private Vector3 _initialPosition;
+
+        /// <summary>
         /// Use this for initialization 
         /// </summary>
         public void Start()
         {
             _rigidbody = GetComponent<Rigidbody>();
-            if (_rigidbody == null) throw new UnityException("GameObject must have a Rigidbody component.");
+            _initialPosition = transform.position;
         }
 
         /// <summary>
@@ -82,7 +66,15 @@ namespace Assets.Main_Scene.Scripts
         public void Push(float amount)
         {
             _movementAmount = amount;
+        }
 
+        public void Reset()
+        {
+            // TODO: Do I really need to set kinematic?
+            _rigidbody.isKinematic = true;
+            _rigidbody.velocity = Vector3.zero;
+            transform.position = _initialPosition;
+            _rigidbody.isKinematic = false;
         }
     }
 }
