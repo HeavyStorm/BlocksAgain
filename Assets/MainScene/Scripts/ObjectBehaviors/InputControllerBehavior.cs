@@ -1,4 +1,5 @@
-﻿using Assets.Other_Assets.Scripts;
+﻿using System;
+using Assets.Other_Assets.Scripts;
 using UnityEngine;
 
 namespace Assets.MainScene.Scripts.ObjectBehaviors
@@ -6,7 +7,7 @@ namespace Assets.MainScene.Scripts.ObjectBehaviors
     /// <summary>
     /// Class responsible for obtaining user input and transmitting it to objects
     /// </summary>
-    public class InputControllerBehavior : MonoBehaviour, IUpdatable
+    public class InputControllerBehavior : MonoBehaviour
     {
         /// <summary>
         /// The flipper this controller controls.
@@ -18,22 +19,45 @@ namespace Assets.MainScene.Scripts.ObjectBehaviors
         /// </summary>
         public BallBehavior Ball;
 
-        public void Start()
+        /// <summary>
+        /// The cameras available to the user.
+        /// </summary>
+        public Camera[] Cameras;
+
+        private int _cameraIndex = 0;
+
+        void Start()
         {
             if (Flipper == null) throw new UnityException("Flipper hasn't been set to the InputController");
             if (Ball == null) throw new UnityException("Ball hasn't been set on the InputController");
+
+            foreach (var c in Cameras)
+            {
+                c.enabled = false;
+            }
+
+            Cameras[_cameraIndex].enabled = true;
         }
 
         // Update is called once per frame
-        public void Update()
+        void Update()
         {
             var horizontal = Input.GetAxis(InputNames.HorizontalAxis);
-            //Flipper.Accelerate(horizontal);
             Flipper.Push(horizontal);
 
-            if (Input.GetButton(InputNames.BallKicker))
+            if (Input.GetButtonDown(InputNames.BallKicker))
             {
                 Ball.Launch();
+            }
+
+            if (Input.GetButtonDown(InputNames.SwitchCamera))
+            {
+                // Disable current camera
+                Cameras[_cameraIndex].enabled = false;
+
+                // Enable next camera
+                _cameraIndex = (_cameraIndex + 1) % Cameras.Length;
+                Cameras[_cameraIndex].enabled = true;
             }
         }
     }

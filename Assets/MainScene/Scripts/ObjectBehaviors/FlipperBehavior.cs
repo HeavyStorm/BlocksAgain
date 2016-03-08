@@ -8,7 +8,7 @@ namespace Assets.MainScene.Scripts.ObjectBehaviors
     /// Defines the default behavior for a flipper GameObject.
     /// </summary>
     [RequireComponent(typeof(Rigidbody))]
-    public class FlipperBehavior : MonoBehaviour, IUpdatable, IFixedUpdatable
+    public class FlipperBehavior : MonoBehaviour
     {
         /// <summary>
         /// BaseForce applied on move
@@ -35,29 +35,7 @@ namespace Assets.MainScene.Scripts.ObjectBehaviors
         /// </summary>
         private Vector3 _initialPosition;
 
-        /// <summary>
-        /// Use this for initialization 
-        /// </summary>
-        public void Start()
-        {
-            _rigidbody = GetComponent<Rigidbody>();
-            _initialPosition = transform.position;
-        }
-
-        /// <summary>
-        /// Update is called once per frame
-        /// </summary>
-        public void Update()
-        {
-        }
-
-        public void FixedUpdate()
-        {
-            if (!(Math.Abs(_movementAmount) > MovementThreshold)) return;
-
-            var force = Vector3.right * _movementAmount * BaseForce;
-            _rigidbody.AddRelativeForce(force);
-        }
+      
 
         /// <summary>
         /// Push the flipper in the horizontal (x) axis.
@@ -75,6 +53,30 @@ namespace Assets.MainScene.Scripts.ObjectBehaviors
             _rigidbody.velocity = Vector3.zero;
             transform.position = _initialPosition;
             _rigidbody.isKinematic = false;
+        }
+
+        /// <summary>
+        /// Use this for initialization 
+        /// </summary>
+        void Start()
+        {
+            _rigidbody = GetComponent<Rigidbody>();
+            _initialPosition = transform.position;
+        }
+
+        /// <summary>
+        /// Update is called once per frame
+        /// </summary>
+        void Update()
+        {
+        }
+
+        void FixedUpdate()
+        {
+            if (!(Math.Abs(_movementAmount) > MovementThreshold)) return;
+
+            var force = Vector3.right * _movementAmount * BaseForce;
+            _rigidbody.AddRelativeForce(force);
         }
     }
 }

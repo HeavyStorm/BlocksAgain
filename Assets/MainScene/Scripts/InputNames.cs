@@ -11,5 +11,7 @@
         /// Name of the  button that kicks the ball
         /// </summary>
         public const string BallKicker = "BallKicker";
+
+        public const string SwitchCamera = "SwitchCamera";
     }
 }

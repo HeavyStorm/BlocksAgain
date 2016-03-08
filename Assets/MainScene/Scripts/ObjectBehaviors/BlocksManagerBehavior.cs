@@ -30,9 +30,9 @@ namespace Assets.MainScene.Scripts.ObjectBehaviors
         /// <param name="margin">Simetrical margin between blocks.</param>
         private IEnumerable<GameObject> CreateBlocksImpl(Vector3 blockSize, Vector3 boardSize, float margin)
         {
+            // TODO: Center the blocks
             var howManyAcross = (int)Math.Floor(boardSize.x / (blockSize.x + margin));
             var howManyLines = (int)Math.Floor((boardSize.z * PercentageOfBoardFromTop) / (blockSize.z + margin));
-            print("HowManyAccross: " + howManyAcross + " HowManyLines: " + howManyLines);
 
             // We set a origin to simplify the calculus below, where this position is the top-left coordinate of the board
             // Also, Y is always 1, which is the shift *from* the board.

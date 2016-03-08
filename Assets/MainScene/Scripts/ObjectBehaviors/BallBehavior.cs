@@ -41,6 +41,8 @@ namespace Assets.MainScene.Scripts.ObjectBehaviors
         /// </summary>
         public float LaunchForceMagnitude = 2000.0f;
 
+        public float BounceRandomForceMagnitude = 500.0f;
+
         /// <summary>
         /// The angle at which the ball will be hurled.
         /// </summary>
@@ -84,6 +86,7 @@ namespace Assets.MainScene.Scripts.ObjectBehaviors
             _rigidbody = GetComponent<Rigidbody>();
 
             if (Flipper == null) throw new UnityException("Flipper must be set.");
+            transform.SetParent(Flipper.transform);
 
             _deathSoundAudioSource = this.AddAudioSource(DeathSound);
             _launchSoundAudioSource = this.AddAudioSource(LaunchSound);
@@ -91,11 +94,14 @@ namespace Assets.MainScene.Scripts.ObjectBehaviors
 
             _initialPosition = transform.position;
 
+
         }
 
         private void FixedUpdate()
         {
             if (_currentState != State.WaitingToMove) return;
+
+            _launchSoundAudioSource.Play();
 
             // Activate physics managed movement
             transform.parent = null;
@@ -115,7 +121,8 @@ namespace Assets.MainScene.Scripts.ObjectBehaviors
             if (collision.gameObject == Flipper)
             {
                 _crashSoundAudioSource.Play();
-                _rigidbody.AddForce(collision.impulse.normalized * LaunchForceMagnitude, ForceMode.Force);
+                var force = Quaternion.Euler(0, Flipper.GetComponent<Rigidbody>().velocity.x * 0.3f, 0) * (collision.impulse.normalized * LaunchForceMagnitude);
+                _rigidbody.AddForce(force, ForceMode.Force);
             }
             else if (collision.gameObject == DeathBarrier)
             {
@@ -128,6 +135,7 @@ namespace Assets.MainScene.Scripts.ObjectBehaviors
             }
             else
             {
+                _rigidbody.AddForce(Quaternion.Euler(0, Random.Range(0, 360), 0) * (collision.impulse.normalized * BounceRandomForceMagnitude));
                 _crashSoundAudioSource.Play();
             }
         }
@@ -139,8 +147,6 @@ namespace Assets.MainScene.Scripts.ObjectBehaviors
         {
             if (_currentState != State.Still) return;
             _currentState = State.WaitingToMove;
-
-            _launchSoundAudioSource.Play();
         }
 
         
