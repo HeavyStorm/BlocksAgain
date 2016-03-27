@@ -39,9 +39,7 @@ namespace Assets.MainScene.Scripts.ObjectBehaviors
         /// <summary>
         /// The speed that is applied to the ball when it begins moving and whenever it lose any stats.
         /// </summary>
-        public float LaunchForceMagnitude = 2000.0f;
-
-        public float BounceRandomForceMagnitude = 500.0f;
+        public float BaseForceMagnitude = 2000.0f;
 
         /// <summary>
         /// The angle at which the ball will be hurled.
@@ -56,32 +54,32 @@ namespace Assets.MainScene.Scripts.ObjectBehaviors
         /// <summary>
         /// The rigidbody component of this object.
         /// </summary>
-        private Rigidbody _rigidbody;
+        Rigidbody _rigidbody;
 
         /// <summary>
         /// The current state of the ball.
         /// </summary>
-        private State _currentState = State.Still;
+        State _currentState = State.Still;
 
         /// <summary>
         /// AudioSource to be played on the death of the ball.
         /// </summary>
-        private AudioSource _deathSoundAudioSource;
+        AudioSource _deathSoundAudioSource;
 
         /// <summary>
         /// Sound to be played on collision.
         /// </summary>
-        private AudioSource _crashSoundAudioSource;
+        AudioSource _crashSoundAudioSource;
 
         /// <summary>
         /// Sound to be played on launch.
         /// </summary>
-        private AudioSource _launchSoundAudioSource;
+        AudioSource _launchSoundAudioSource;
 
-        private Vector3 _initialPosition;
+        Vector3 _initialPosition;
 
         // Use this for initialization
-        private void Start()
+        void Start()
         {
             _rigidbody = GetComponent<Rigidbody>();
 
@@ -93,35 +91,41 @@ namespace Assets.MainScene.Scripts.ObjectBehaviors
             _crashSoundAudioSource = this.AddAudioSource(CrashSound);
 
             _initialPosition = transform.position;
-
-
         }
 
-        private void FixedUpdate()
+        void FixedUpdate()
         {
-            if (_currentState != State.WaitingToMove) return;
+            if (_currentState == State.Moving)
+            {
 
-            _launchSoundAudioSource.Play();
+            }
+            else if (_currentState == State.WaitingToMove)
+            {
+                // Only update the body if the status is waiting to move
+                _launchSoundAudioSource.Play();
 
-            // Activate physics managed movement
-            transform.parent = null;
-            _rigidbody.isKinematic = false;
+                // Activate physics managed movement
+                transform.parent = null;
+                _rigidbody.isKinematic = false;
 
-            var angle = Random.Range(-LaunchAngleAmplitude / 2, +LaunchAngleAmplitude / 2);
-            var force = Quaternion.Euler(0, angle, 0) * (Vector3.forward * LaunchForceMagnitude);
+                var angle = Random.Range(-LaunchAngleAmplitude / 2, +LaunchAngleAmplitude / 2);
+                var force = Quaternion.Euler(0, angle, 0) * (Vector3.forward * BaseForceMagnitude);
 
-            _rigidbody.AddRelativeForce(force);
-            _currentState = State.Moving;
+                _rigidbody.AddForce(force);
+                _currentState = State.Moving;
+            }
         }
 
-        public void OnCollisionEnter(Collision collision)
+        void OnCollisionEnter(Collision collision)
         {
+            // Ignore collisions when not moving.
             if (_currentState != State.Moving) return;
+
 
             if (collision.gameObject == Flipper)
             {
                 _crashSoundAudioSource.Play();
-                var force = Quaternion.Euler(0, Flipper.GetComponent<Rigidbody>().velocity.x * 0.3f, 0) * (collision.impulse.normalized * LaunchForceMagnitude);
+                var force = Quaternion.Euler(0, Flipper.GetComponent<Rigidbody>().velocity.x * 0.3f, 0) * (collision.impulse.normalized * BaseForceMagnitude);
                 _rigidbody.AddForce(force, ForceMode.Force);
             }
             else if (collision.gameObject == DeathBarrier)
@@ -129,16 +133,21 @@ namespace Assets.MainScene.Scripts.ObjectBehaviors
                 _deathSoundAudioSource.Play();
                 _currentState = State.Dying;
                 _rigidbody.velocity = Vector3.zero;
-                
+
                 // TODO: Add delay
                 OnBallDestroyed();
             }
             else
             {
-                _rigidbody.AddForce(Quaternion.Euler(0, Random.Range(0, 360), 0) * (collision.impulse.normalized * BounceRandomForceMagnitude));
                 _crashSoundAudioSource.Play();
             }
         }
+
+        //void OnCollisionExit(Collision collision)
+        //{
+        //    // Make sure the velocity magnitude is constant
+        //    _rigidbody.velocity = _rigidbody.velocity.normalized * BaseForceMagnitude;
+        //}
 
         /// <summary>
         /// Should be called once, in order to make the ball start movement.
@@ -149,12 +158,10 @@ namespace Assets.MainScene.Scripts.ObjectBehaviors
             _currentState = State.WaitingToMove;
         }
 
-        
-
         /// <summary>
         /// All possible states of this object.
         /// </summary>
-        private enum State
+        enum State
         {
             Still,
             WaitingToMove,
@@ -163,7 +170,7 @@ namespace Assets.MainScene.Scripts.ObjectBehaviors
             Dead
         }
 
-        private  void OnBallDestroyed()
+        void OnBallDestroyed()
         {
             var handler = BallDestroyed;
             if (handler != null) handler(this, EventArgs.Empty);
