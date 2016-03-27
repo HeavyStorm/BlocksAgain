@@ -1,6 +1,4 @@
-﻿using System;
-using Assets.Other_Assets.Scripts;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace Assets.MainScene.Scripts.ObjectBehaviors
 {
@@ -24,7 +22,7 @@ namespace Assets.MainScene.Scripts.ObjectBehaviors
         /// </summary>
         public Camera[] Cameras;
 
-        private int _cameraIndex = 0;
+        int _cameraIndex;
 
         void Start()
         {
@@ -43,7 +41,7 @@ namespace Assets.MainScene.Scripts.ObjectBehaviors
         void Update()
         {
             var horizontal = Input.GetAxis(InputNames.HorizontalAxis);
-            Flipper.Push(horizontal);
+            Flipper.Move(horizontal);
 
             if (Input.GetButtonDown(InputNames.BallKicker))
             {

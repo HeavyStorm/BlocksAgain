@@ -1,5 +1,5 @@
 ﻿using System;
-using Assets.Other_Assets.Scripts;
+using System.Linq;
 using UnityEngine;
 
 namespace Assets.MainScene.Scripts.ObjectBehaviors
@@ -11,9 +11,9 @@ namespace Assets.MainScene.Scripts.ObjectBehaviors
     public class FlipperBehavior : MonoBehaviour
     {
         /// <summary>
-        /// BaseForce applied on move
+        /// The velocity applied (amount of movement) in meters per second (m/s). 
         /// </summary>
-        public float BaseForce = 50.0f;
+        public float BaseVelocity = 10.0f;
 
         /// <summary>
         /// Movement amount must be higher than this.
@@ -21,38 +21,37 @@ namespace Assets.MainScene.Scripts.ObjectBehaviors
         public float MovementThreshold = 0.1f;
 
         /// <summary>
-        /// The <see cref="Rigidbody"/> component of this <see cref="GameObject"/>.
+        /// List of possible limitations for movement of the flipper.
         /// </summary>
-        private Rigidbody _rigidbody;
+        public Collider[] Limits; 
 
         /// <summary>
         /// Amount of movement that is being applied to the object.
         /// </summary>
-        private float _movementAmount;
+        float _movementAmount;
 
         /// <summary>
         /// The initial position of the flipper
         /// </summary>
-        private Vector3 _initialPosition;
-
-      
+        Vector3 _initialPosition;
 
         /// <summary>
-        /// Push the flipper in the horizontal (x) axis.
+        /// Means there's a collision with a limit.
         /// </summary>
-        /// <param name="amount">The amount of push that is desired, being a value between [-1,+1].</param>
-        public void Push(float amount)
+        bool _isCollided;
+
+        /// <summary>
+        /// Move the flipper in the horizontal (x) axis.
+        /// </summary>
+        /// <param name="amount">The amount of push that is desired, being a value between [-1,+1]. For non analog controllers, always -1, 0 or 1.</param>
+        public void Move(float amount)
         {
             _movementAmount = amount;
         }
 
         public void Reset()
         {
-            // TODO: Do I really need to set kinematic?
-            _rigidbody.isKinematic = true;
-            _rigidbody.velocity = Vector3.zero;
             transform.position = _initialPosition;
-            _rigidbody.isKinematic = false;
         }
 
         /// <summary>
@@ -60,7 +59,6 @@ namespace Assets.MainScene.Scripts.ObjectBehaviors
         /// </summary>
         void Start()
         {
-            _rigidbody = GetComponent<Rigidbody>();
             _initialPosition = transform.position;
         }
 
@@ -69,14 +67,35 @@ namespace Assets.MainScene.Scripts.ObjectBehaviors
         /// </summary>
         void Update()
         {
+            if (Math.Abs(_movementAmount) < MovementThreshold) return;
+
+            if (_isCollided) return;
+
+            transform.position = Vector3.Lerp(transform.position, transform.position + (_movementAmount*Vector3.right * BaseVelocity) , Time.deltaTime);
         }
 
-        void FixedUpdate()
+        /// <summary>
+        /// Called when a collision is started.
+        /// </summary>
+        /// <param name="collision">Data about the collision</param>
+        void OnCollisionEnter(Collision collision)
         {
-            if (!(Math.Abs(_movementAmount) > MovementThreshold)) return;
+            if (Limits.Contains(collision.collider))
+            {
+                _isCollided = true;
+            }
+        }
 
-            var force = Vector3.right * _movementAmount * BaseForce;
-            _rigidbody.AddRelativeForce(force);
+        /// <summary>
+        /// Called when a collision is started.
+        /// </summary>
+        /// <param name="collision">Data about the collision</param>
+        void OnCollisionExit(Collision collision)
+        {
+            if (Limits.Contains(collision.collider))
+            {
+                _isCollided = false;
+            }
         }
     }
 }
